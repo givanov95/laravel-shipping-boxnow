@@ -6,7 +6,7 @@ BoxNow lockers as a delivery method of a Laravel shop: the client of the BoxNow 
 composer require givanov95/laravel-shipping-boxnow
 ```
 
-> **0.x, not yet checked against the real API.** The requests and the answers are covered with `Http::fake()` only: the tests prove what is sent and how the answer we expect is read. Run the checks under [Before going live](#before-going-live) first.
+> **0.x, the partner API is not yet checked.** The list of the lockers — all the checkout needs — is read from the real file. The partner API (the access token, `createDelivery`) is covered with `Http::fake()` only: run the checks under [Before going live](#before-going-live) with a stage account first.
 
 ## What the shop gets
 
@@ -54,11 +54,12 @@ The package brings its one customer-facing text ("The selected locker is not ava
 
 ## Before going live
 
-Nothing here has been sent to BoxNow yet.
+The list of the lockers is checked: on 2026-10-13 the code read the file BoxNow publishes, production and stage, and `tests/Fixtures/apms_bg-BG.json` keeps 18 of its rows as they were. What the list writes in a way of its own is evened out when it is read:
 
-Without an account:
-
-- The list — `(new Givanov95\Shipping\BoxNow\BoxNowService())->getLockers()` gives the lockers with `id`, `name`, `city` and `postal_code`. The city is read from `addressLine2` of a row, the name from `name` (or `title`): check both against the file BoxNow publishes today.
+- a city with a Latin letter in place of the Cyrillic one it looks like, with a space after it, or in two cases ("Червен бряг", "Червен Бряг") is one city, under the spelling most of its lockers have;
+- a postal code that is not a number ("-1000") is not kept, and a name has no space around it;
+- a locker in the state `only-delivery` (16 of 964 that day) is listed with the `boxnow-ready` ones. By its name it takes deliveries and no parcels to send; BoxNow has not confirmed that reading;
+- the "с." of a village is kept, because a town and a village share a name ("Първомай", "с. Първомай"). A village the list names with and without it ("Войводиново", "с. Войводиново") stays twice in the list of the cities.
 
 With a stage account (`BOXNOW_CLIENT_ID`, `BOXNOW_CLIENT_SECRET`):
 
